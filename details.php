@@ -1,13 +1,39 @@
 <?php
-
 require 'config/config.php';
 require 'config/database.php';
 $db =new Database();
 $con= $db->conectar();
 
-$sql= $con->prepare("SELECT id,nombre,precio FROM productos WHERE activo=1");
-$sql->execute();
-$resultado=$sql->fetchAll(PDO::FETCH_ASSOC);
+$id =isset($_GET['id']) ? $_GET['id']: '';
+$token =isset($_GET['token']) ? $_GET['token']:'';
+
+if($id== ''||  $token='')
+{
+    echo 'error al procesar la peticion';
+    exit;
+}else{
+    $token_tmp= hash_hmac('sha1', $id, KEY_TOKEN);
+
+    if($token == $token_tmp){
+        $sql= $con->prepare("SELECT count(id) FROM productos WHERE id=? AND activo=1");
+        $sql->execute([$id]);
+    if($sql->fetchColumn() > 0)
+  {
+    $sql= $con->prepare("SELECT nombre, descripcion,precio FROM productos WHERE id=? AND activo=1 LIMIT 1");
+    $sql->execute([$id]);
+    $row=$sql->fetch(PDO::FETCH_ASSOC);
+    $nombre=$row['nombre'];
+    $descripcion= $row['descripcion'];
+    $precio= $row['precio'];
+
+  }
+}else{
+    echo 'error al procesar la peticion';
+    exit;
+     }
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,36 +74,30 @@ $resultado=$sql->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 </header>
-
+<!--contenido-->
 <main>
   <div class="container">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-      <?php foreach($resultado as $row) {?>
-        <div class="col">
-          <div class="card shadow-sm">
-            <?php
-             $id= $row['id'];
-             $imagen="imagenes/productos/".$id."/principal.jpeg";
-             if(!file_exists($imagen))
-             {
-               $imagen="imagenes/no-photo.jpg";
-             }
-            ?>
-              <img src="<?php echo $imagen; ?>">
-            <div class="card-body">
-              <h5 class="card-title"><?php echo $row['nombre'];?></h5>
-              <p class="card-text"><?php echo number_format($row['precio'],2,'.',',');?></p>
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group">
-                  <a href="details.php?id=<?php echo $row['id'];?>&token=<?php echo hash_hmac('sha1',$row['id'],KEY_TOKEN);?>"class="btn btn-primary">detalles</a>
-                </div>
-                <a href=""class="btn btn-success">agregar</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      <?php } ?>
-    </div>
+    <div class="row">
+        <div class="col-md-6 order-md-1">
+              <img src="imagenes/productos/1/principal.jpeg">
+         </div>
+         <div class="col-md-6 order-md-2">
+<h2><?php echo $nombre; ?></h2>
+<h2><?php echo MONEDA . number_format($precio,2,'.',',');?></h2>
+<p class="lead">
+    <?php echo $descripcion;?>
+
+</p>
+<div class="d-grid gap-3 col-10 mx-auto">
+    <button class="btn btn-primary"type="button">comprar ahora</button>
+    <button class="btn btn-outline-primary"type="button">agregar al carrito</button>
+
+
+</div>
+
+         </div>
+
+</div>
   </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
