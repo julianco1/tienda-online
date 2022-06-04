@@ -9,6 +9,36 @@ $sql= $con->prepare("SELECT id,nombre,precio FROM productos WHERE activo=1");
 $sql->execute();
 $resultado=$sql->fetchAll(PDO::FETCH_ASSOC);
 
+if($_POST)
+{
+    $usuario=$_POST['usuario'];
+    $password=$_POST['password'];
+
+    $sql="SELECT id, password,nombre,tipo_usuario FROM usuarios WHERE usuario='$usuario'";
+    $resultado=$mysqli->query($sql);
+    $num=$resultado->num_rows;
+    if($num>0){
+        $row=$resultado->fetch_assoc();
+        $password_bd=$row['password'];
+        $pass_c=sha1($password);
+
+        if($password_bd ==$pass_c){
+            $_SESSION['id']=$row['id'];
+            $_SESSION['nombre']=$row['nombre'];
+            $_SESSION['tipo_usuario']=$row['tipo_usuario'];
+          //  header("location:index.php");
+
+
+        }else{
+            echo"la contraseña no coincide";
+        }
+
+
+    }else{
+        echo "NO existe usuario";
+    }
+}
+
 //session_destroy(); //para eliminar todo lo de los datos
 
 //print_r($_SESSION);
@@ -59,15 +89,24 @@ $resultado=$sql->fetchAll(PDO::FETCH_ASSOC);
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Inicio de sesion</h5>
         <div class="modal-body">
-                            <p type="nombre">
-                                <input type="text" placeholder="escriba su nombre y apellido aqui" required></input>
-                            </p>
-                            <p type="correo:">
-                              <input type="text" placeholder="escriba su correo" required></input>
-                            </p>
-                            <p type="password:">
-                              <input type="text"placeholder="escriba su contraseña" required></input>
+            <form method="POST" action="<?php echo $SERVER['PHP_SELF']; ?>">
+<div class="form-group"><label class="small mb-1" for="inputEmailAddres">usuario</label><input class="form-control py-4"
+id="inputEmailAddress"name="usuario"type="text" placeholder="enter email address"/>
+</div>
+<div class="form-group"><label class="small mb-1" for="inputPassword">password</label><input class="form-control py-4"
+            id="inputPassword"name="password"type="password" placeholder="enter password"/>
+</div>
+<div class="form-group"><label class="small mb-1" for="inputEmailAddres">remember password</label><input class="form-control py-4"
+            id="rememberPasswordcheck"name=""type="checkbox" placeholder="enter email address"/>
+</div>
+<div class="form-group"><label class="small mb-1" for="inputEmailAddres">email</label><input class="form-control py-4"
+            id="inputEmailAddress"name=""type="email" placeholder="enter email address"/>
+</div>
+<div class="form-group"><label class="small mb-1" for="inputEmailAddres">email</label><input class="form-control py-4"
+            id="inputEmailAddress"name=""type="email" placeholder="enter email address"/>
+</div>
                             </div>
+</form>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-footer">
